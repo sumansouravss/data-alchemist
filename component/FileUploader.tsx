@@ -6,7 +6,7 @@ type EntityType = 'clients' | 'workers' | 'tasks';
 
 interface ParsedData {
   entity: EntityType;
-  data: any[];
+  data: Record<string, string>[];
 }
 
 interface FileUploaderProps {
