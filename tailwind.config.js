@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./component/**/*.{js,ts,jsx,tsx}",
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './component/**/*.{js,ts,jsx,tsx}',
   ],
-  darkMode: 'class', // or 'media' if you want system preference
+  darkMode: 'class', // ✅ Use 'class' for manual toggle
   theme: {
     extend: {
       colors: {
@@ -14,4 +14,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};
