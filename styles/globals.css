@@ -1,6 +1,6 @@
 @tailwind utilities;
 
-/* 🌞 Light Theme (default) */
+/* Light Theme Defaults */
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -8,13 +8,13 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* 🌙 Dark Theme */
+/* Dark Mode Overrides */
 .dark {
   --background: #0a0a0a;
   --foreground: #d1d5db;
 }
 
-/* ✨ Base body styles */
+/* Global Body Styles */
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -22,7 +22,6 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* ✅ Enhance text rendering & scroll */
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;

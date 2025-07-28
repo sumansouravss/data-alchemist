@@ -4,7 +4,7 @@ module.exports = {
     './pages/**/*.{js,ts,jsx,tsx}',
     './component/**/*.{js,ts,jsx,tsx}',
   ],
-  darkMode: 'class', // ✅ Use 'class' for manual toggle
+  darkMode: 'class', // manual toggle via class
   theme: {
     extend: {
       colors: {
