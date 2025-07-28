@@ -8,7 +8,10 @@ import ExportManager from '../component/ExportManager';
 import RuleBuilder from '../component/RuleBuilder';
 import NLRuleInput from '../component/MLRuleInput';
 import DarkModeToggle from '../component/DarkModeToggle';
-import NLTaskSearchBar from '../component/NLTaskSearchBar'; // ✅ Added natural language search
+import NLTaskSearchBar from '../component/NLTaskSearchBar';
+import NLRuleGenerator from '../component/NLRuleGenerator';
+
+const isValidTaskId = (taskIds: string[], id: string) => taskIds.includes(id);
 
 type EntityType = 'clients' | 'workers' | 'tasks';
 
@@ -25,6 +28,8 @@ export default function Home() {
     fulfillmentWeight: 5,
   });
 
+  const taskIds = tasks.map(t => t.TaskID);
+
   const handleDataParsed = ({ entity, data }: { entity: EntityType; data: Record<string, string>[] }) => {
     if (entity === 'clients') setClients(data);
     else if (entity === 'workers') setWorkers(data);
@@ -32,6 +37,12 @@ export default function Home() {
   };
 
   const handleAddRule = (newRule: any) => {
+    if (newRule.type === 'dependency') {
+      if (!isValidTaskId(taskIds, newRule.before) || !isValidTaskId(taskIds, newRule.after)) {
+        alert('Invalid task IDs in rule. Please ensure both tasks exist.');
+        return;
+      }
+    }
     setRules((prev) => [...prev, newRule]);
   };
 
@@ -39,15 +50,108 @@ export default function Home() {
     setRules((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // ✅ Load from localStorage on mount
+  useEffect(() => {
+    const savedSession = localStorage.getItem('data-alchemist-session');
+    if (savedSession) {
+      const { clients, workers, tasks, rules, priorities } = JSON.parse(savedSession);
+      setClients(clients || []);
+      setWorkers(workers || []);
+      setTasks(tasks || []);
+      setRules(rules || []);
+      setPriorities(priorities || {
+        priorityLevelWeight: 3,
+        fairnessWeight: 2,
+        fulfillmentWeight: 5,
+      });
+    }
+  }, []);
+
+  // ✅ Save to localStorage on any change
+  useEffect(() => {
+    localStorage.setItem(
+      'data-alchemist-session',
+      JSON.stringify({ clients, workers, tasks, rules, priorities })
+    );
+  }, [clients, workers, tasks, rules, priorities]);
+
   useEffect(() => {
     const validationResults = validateData({ clients, workers, tasks });
     setErrors(validationResults);
   }, [clients, workers, tasks]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100 transition-colors">
+    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-500 ease-in-out">
       <div className="p-6 max-w-7xl mx-auto">
-        <DarkModeToggle />
+
+        {/* ✅ Control Panel */}
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-6 space-x-4">
+
+          <DarkModeToggle />
+
+          <button
+            onClick={() => {
+              if (confirm("Are you sure you want to reset the session?")) {
+                localStorage.removeItem("data-alchemist-session");
+                location.reload();
+              }
+            }}
+            className="text-sm text-red-500 underline hover:text-red-700 transition-colors"
+          >
+            🔄 Reset
+          </button>
+
+          <button
+            onClick={() => {
+              const session = JSON.stringify({ clients, workers, tasks, rules, priorities }, null, 2);
+              const blob = new Blob([session], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'data-alchemist-session.json';
+              link.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="text-sm text-blue-500 underline hover:text-blue-700 transition-colors"
+          >
+            📤 Export
+          </button>
+
+          <label
+            htmlFor="import-session"
+            className="text-sm text-green-500 underline hover:text-green-700 cursor-pointer transition-colors"
+          >
+            📥 Import
+          </label>
+          <input
+            type="file"
+            accept=".json"
+            className="hidden"
+            id="import-session"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                try {
+                  const parsed = JSON.parse(reader.result as string);
+                  if (parsed.clients && parsed.workers && parsed.tasks) {
+                    setClients(parsed.clients);
+                    setWorkers(parsed.workers);
+                    setTasks(parsed.tasks);
+                    setRules(parsed.rules || []);
+                    setPriorities(parsed.priorities || priorities);
+                  } else {
+                    alert("Invalid session file");
+                  }
+                } catch {
+                  alert("Failed to parse JSON file");
+                }
+              };
+              reader.readAsText(file);
+            }}
+          />
+        </div>
 
         <h1 className="text-3xl font-bold mb-6 text-center">🧙‍♂️ Data Alchemist</h1>
 
@@ -69,9 +173,11 @@ export default function Home() {
         {clients.length > 0 && (
           <EditableTable data={clients} setData={setClients} title="Clients" />
         )}
+
         {workers.length > 0 && (
           <EditableTable data={workers} setData={setWorkers} title="Workers" />
         )}
+
         {tasks.length > 0 && (
           <>
             <TaskSearchBar originalData={tasks} onFiltered={setFilteredTasks} />
@@ -81,12 +187,13 @@ export default function Home() {
               setData={setTasks}
               title="Tasks"
             />
+            <RuleBuilder onAddRule={handleAddRule} taskIds={taskIds} />
           </>
         )}
 
         <div className="mt-10 space-y-4">
-          <RuleBuilder onAddRule={handleAddRule} />
           <NLRuleInput onAddRule={handleAddRule} />
+          <NLRuleGenerator onAddRule={handleAddRule} taskIds={taskIds} />
         </div>
 
         {rules.length > 0 && (

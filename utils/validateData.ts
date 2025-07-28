@@ -18,37 +18,33 @@ export function validateData({
   const errors: ValidationError[] = [];
 
   // ✅ Rule a: Missing Required Columns
-  const requiredClientCols = ['ClientID', 'PriorityLevel', 'RequestedTaskIDs'];
-  const requiredWorkerCols = ['WorkerID', 'Skills', 'AvailableSlots', 'MaxLoadPerPhase'];
-  const requiredTaskCols = ['TaskID', 'Duration', 'RequiredSkills'];
+  const requiredColumns = {
+    clients: ['ClientID', 'PriorityLevel', 'RequestedTaskIDs'],
+    workers: ['WorkerID', 'Skills', 'AvailableSlots', 'MaxLoadPerPhase'],
+    tasks: ['TaskID', 'Duration', 'RequiredSkills'],
+  };
 
-  const checkMissingColumns = (
-    rows: Record<string, string>[],
-    required: string[],
-    entity: 'clients' | 'workers' | 'tasks'
-  ) => {
-    if (!rows || !rows.length) return;
+  for (const [entity, required] of Object.entries(requiredColumns)) {
+    const rows = { clients, workers, tasks }[entity as keyof typeof requiredColumns];
+    if (!rows || !rows.length) continue;
+
     required.forEach((col) => {
       if (!Object.keys(rows[0]).includes(col)) {
         errors.push({
           type: 'error',
-          entity,
+          entity: entity as 'clients' | 'workers' | 'tasks',
           row: -1,
           column: col,
           message: `${col} column is missing`,
         });
       }
     });
-  };
-
-  checkMissingColumns(clients, requiredClientCols, 'clients');
-  checkMissingColumns(workers, requiredWorkerCols, 'workers');
-  checkMissingColumns(tasks, requiredTaskCols, 'tasks');
+  }
 
   // ✅ Rule b: Duplicate IDs
-  const checkDuplicates = (data: Record<string, string>[], key: string, entity: 'clients' | 'workers' | 'tasks') => {
+  const checkDuplicates = (rows: Record<string, string>[], key: string, entity: 'clients' | 'workers' | 'tasks') => {
     const seen = new Set();
-    data.forEach((row, i) => {
+    rows.forEach((row, i) => {
       const id = row[key];
       if (seen.has(id)) {
         errors.push({
@@ -67,7 +63,7 @@ export function validateData({
   checkDuplicates(workers, 'WorkerID', 'workers');
   checkDuplicates(tasks, 'TaskID', 'tasks');
 
-  // ✅ Rule c: Malformed Lists (AvailableSlots must be a JSON array)
+  // ✅ Rule c: Malformed Lists
   workers.forEach((row, i) => {
     try {
       const parsed = JSON.parse(row.AvailableSlots);
@@ -86,9 +82,9 @@ export function validateData({
   // ✅ Rule f: Unknown TaskIDs in RequestedTaskIDs
   const validTaskIDs = new Set(tasks.map((t) => t.TaskID));
   clients.forEach((row, i) => {
-    const taskIDs = row.RequestedTaskIDs?.split(',') || [];
-    taskIDs.forEach((id) => {
-      if (!validTaskIDs.has(id.trim())) {
+    const ids = row.RequestedTaskIDs?.split(',').map((s) => s.trim()) || [];
+    ids.forEach((id) => {
+      if (id && !validTaskIDs.has(id)) {
         errors.push({
           type: 'error',
           entity: 'clients',
@@ -100,7 +96,7 @@ export function validateData({
     });
   });
 
-  // ✅ Rule i: Overloaded workers (AvailableSlots.length < MaxLoadPerPhase)
+  // ✅ Rule i: Overloaded Workers
   workers.forEach((row, i) => {
     try {
       const slots = JSON.parse(row.AvailableSlots);
@@ -111,20 +107,23 @@ export function validateData({
           entity: 'workers',
           row: i + 1,
           column: 'AvailableSlots',
-          message: 'Available slots less than max load',
+          message: 'AvailableSlots count is less than MaxLoadPerPhase',
         });
       }
     } catch {
-      // already handled in malformed list
+      // already reported as malformed above
     }
   });
 
-  // ✅ Rule k: Skill-coverage matrix (RequiredSkills exist in at least one worker)
-  const allWorkerSkills = new Set(workers.flatMap((w) => w.Skills.split(',')));
+  // ✅ Rule k: Skill Coverage (Tasks require at least one matching worker skill)
+  const allWorkerSkills = new Set(
+    workers.flatMap((w) => w.Skills?.split(',').map((s) => s.trim()))
+  );
+
   tasks.forEach((row, i) => {
-    const requiredSkills = row.RequiredSkills?.split(',') || [];
-    requiredSkills.forEach((skill) => {
-      if (!allWorkerSkills.has(skill.trim())) {
+    const required = row.RequiredSkills?.split(',').map((s) => s.trim()) || [];
+    required.forEach((skill) => {
+      if (skill && !allWorkerSkills.has(skill)) {
         errors.push({
           type: 'error',
           entity: 'tasks',
