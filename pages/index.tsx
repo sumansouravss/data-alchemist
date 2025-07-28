@@ -4,8 +4,10 @@ import EditableTable from '../component/EditableTable';
 import { validateData, ValidationError } from '../utils/validateData';
 import TaskSearchBar from '../component/TaskSearchBar';
 import PriorityPanel from '../component/PriorityPanel';
-import ExportManager from '../component/ExportManager';
-import RuleBuilder from '../component/RuleBuilder';
+import ExportManager from '../component/ExportManager'; 
+import RuleBuilder from '../component/RuleBuilder'; 
+import NLRuleInput from '../component/MLRuleInput';
+// ✅ Don’t forget this import
 
 type EntityType = 'clients' | 'workers' | 'tasks';
 
@@ -15,7 +17,6 @@ export default function Home() {
   const [tasks, setTasks] = useState<Record<string, string>[]>([]);
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<Record<string, string>[]>([]);
-  const [rulesList, setRulesList] = useState<any[]>([]);
   const [priorities, setPriorities] = useState({
     priorityLevelWeight: 3,
     fairnessWeight: 2,
@@ -28,10 +29,7 @@ export default function Home() {
     else if (entity === 'tasks') setTasks(data);
   };
 
-  const handleAddRule = (rule: any) => {
-    setRulesList(prev => [...prev, rule]);
-  };
-
+  // ✅ Run validations on data update
   useEffect(() => {
     const validationResults = validateData({ clients, workers, tasks });
     setErrors(validationResults);
@@ -74,25 +72,23 @@ export default function Home() {
             setData={setTasks}
             title="Tasks"
           />
-          {/* ✅ Rule Builder UI */}
-          <RuleBuilder taskIds={tasks.map(t => t.TaskID)} onAddRule={handleAddRule} />
         </>
       )}
 
       {/* ✅ Priority Panel */}
       <PriorityPanel priorities={priorities} setPriorities={setPriorities} />
 
-      {/* ✅ Export Button with Rules */}
+      {/* ✅ Export Button */}
       <ExportManager
         clients={clients}
         workers={workers}
         tasks={tasks}
-        rules={{ rules: rulesList, priorities }}
+        rules={{ rules: [], priorities }}
       />
 
       {/* Optional: Debug JSON */}
       <pre className="bg-gray-100 text-sm p-4 mt-6 rounded overflow-auto max-h-80">
-        {JSON.stringify({ clients, workers, tasks, priorities, rules: rulesList }, null, 2)}
+        {JSON.stringify({ clients, workers, tasks, priorities }, null, 2)}
       </pre>
     </div>
   );
