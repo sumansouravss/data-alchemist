@@ -11,6 +11,10 @@ module.exports = {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
       },
+      transitionProperty: {
+        background: 'background-color',
+        colors: 'color, background-color, border-color, text-decoration-color, fill, stroke',
+      },
     },
   },
   plugins: [],
