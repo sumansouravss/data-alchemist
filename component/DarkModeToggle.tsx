@@ -1,4 +1,3 @@
-// ✅ DarkModeToggle.tsx with styled button and working icon
 import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
@@ -9,32 +8,26 @@ const DarkModeToggle = () => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    }
+    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    setIsDark(shouldUseDark);
+    document.documentElement.classList.toggle('dark', shouldUseDark);
   }, []);
 
   const toggleDarkMode = () => {
-    const root = document.documentElement;
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    root.classList.toggle('dark', newTheme);
-    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+    const newDark = !isDark;
+    setIsDark(newDark);
+    document.documentElement.classList.toggle('dark', newDark);
+    localStorage.setItem('theme', newDark ? 'dark' : 'light');
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50">
-      <button
-        onClick={toggleDarkMode}
-        className="flex items-center gap-2 px-3 py-2 rounded bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white shadow-md transition-all hover:scale-105 hover:shadow-lg"
-      >
-        {isDark ? <Sun size={18} /> : <Moon size={18} />}
-        <span className="text-sm font-medium">
-          {isDark ? 'Light Mode' : 'Dark Mode'}
-        </span>
-      </button>
-    </div>
+    <button
+      onClick={toggleDarkMode}
+      className="text-xl p-2 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-yellow-300 shadow hover:scale-110 transition"
+      title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+    >
+      {isDark ? <Sun size={20} /> : <Moon size={20} />}
+    </button>
   );
 };
 

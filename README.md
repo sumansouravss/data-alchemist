@@ -1,4 +1,4 @@
-# 🧙‍♂️ Data Alchemist
+
 
 This AI-powered Next.js web app lets users upload CSV/XLSX files, edit data inline, validate errors, and export clean datasets.
 

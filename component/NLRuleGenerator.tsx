@@ -7,7 +7,7 @@ interface Rule {
 
 interface NLRuleGeneratorProps {
   onAddRule: (rule: Rule) => void;
-  taskIds: string[]; // ✅ for validation
+  taskIds: string[];
 }
 
 const NLRuleGenerator = ({ onAddRule, taskIds }: NLRuleGeneratorProps) => {
@@ -15,22 +15,21 @@ const NLRuleGenerator = ({ onAddRule, taskIds }: NLRuleGeneratorProps) => {
   const [preview, setPreview] = useState<Rule | null>(null);
 
   const parseRule = (text: string): Rule | null => {
-    // Format 1: Make T1 run after T2
-    let match = text.match(/make (\w+) run after (\w+)/i);
-    if (match) {
-      return { type: 'dependency', after: match[1], before: match[2] };
-    }
+    text = text.trim().toLowerCase();
 
-    // Format 2: T1 depends on T2
-    match = text.match(/(\w+) depends on (\w+)/i);
-    if (match) {
-      return { type: 'dependency', after: match[1], before: match[2] };
-    }
+    const patterns = [
+      /make (\w+)\s+run after (\w+)/i,
+      /(\w+)\s+depends on (\w+)/i,
+      /run (\w+)\s+after (\w+)/i,
+      /(\w+)\s+should be executed after (\w+)/i,
+      /(\w+)\s+must run after (\w+)/i,
+    ];
 
-    // Format 3: Run T1 after T2
-    match = text.match(/run (\w+) after (\w+)/i);
-    if (match) {
-      return { type: 'dependency', after: match[1], before: match[2] };
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return { type: 'dependency', after: match[1].toUpperCase(), before: match[2].toUpperCase() };
+      }
     }
 
     return null;
@@ -39,12 +38,11 @@ const NLRuleGenerator = ({ onAddRule, taskIds }: NLRuleGeneratorProps) => {
   const handlePreview = () => {
     const rule = parseRule(input);
     if (!rule) {
-      alert('❌ Could not understand rule. Try formats like "Make T1 run after T2" or "T1 depends on T2"');
+      alert('❌ Could not understand rule. Try: "Make T1 run after T2" or "T1 depends on T2".');
       setPreview(null);
       return;
     }
 
-    // ✅ Task ID validation
     if (!taskIds.includes(rule.before) || !taskIds.includes(rule.after)) {
       alert(`❌ Task IDs not found. Ensure "${rule.after}" and "${rule.before}" are valid.`);
       setPreview(null);
@@ -61,21 +59,30 @@ const NLRuleGenerator = ({ onAddRule, taskIds }: NLRuleGeneratorProps) => {
     setPreview(null);
   };
 
+  const readableRule = (rule: Rule) => {
+    if (rule.type === 'dependency') {
+      return `📐 Task ${rule.after} must run after ${rule.before}`;
+    }
+    return JSON.stringify(rule);
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded p-4 mt-6">
-      <h2 className="text-lg font-bold mb-2 text-gray-800 dark:text-gray-100">🧠 Natural Language Rule</h2>
+    <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-900 p-6 rounded-2xl shadow-xl transition-colors duration-300">
+      <h2 className="text-xl font-semibold mb-3 text-gray-900 dark:text-pink-300">
+        🧠 Natural Language Rule Generator
+      </h2>
 
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder='e.g. Make T1 run after T2'
-        className="w-full px-3 py-2 border border-gray-300 rounded mb-2 dark:bg-gray-700 dark:text-white"
+        placeholder="e.g. Make T1 run after T2"
+        className="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-600 dark:bg-gray-700 dark:text-white mb-3 transition-all duration-200"
       />
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-3">
         <button
           onClick={handlePreview}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+          className="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-xl transition-transform duration-200 hover:scale-105 shadow-md"
         >
           🔍 Preview Rule
         </button>
@@ -83,17 +90,20 @@ const NLRuleGenerator = ({ onAddRule, taskIds }: NLRuleGeneratorProps) => {
         <button
           onClick={handleSubmit}
           disabled={!preview}
-          className={`${
-            preview ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
-          } text-white px-4 py-2 rounded`}
+          className={`px-5 py-2 rounded-xl text-white shadow-md transition-transform duration-200 ${
+            preview
+              ? 'bg-green-600 hover:bg-green-700 hover:scale-105'
+              : 'bg-gray-400 cursor-not-allowed'
+          }`}
         >
           ➕ Add Rule
         </button>
       </div>
 
       {preview && (
-        <div className="mt-4 text-sm text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900 p-2 rounded">
-          ✅ Preview: <code>{JSON.stringify(preview)}</code>
+        <div className="mt-5 text-sm text-green-800 dark:text-green-300 bg-green-100 dark:bg-green-900 px-4 py-3 rounded-xl">
+          <span className="font-medium">Preview:</span>{' '}
+          <span className="font-mono">{readableRule(preview)}</span>
         </div>
       )}
     </div>

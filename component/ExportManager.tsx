@@ -1,7 +1,5 @@
-// components/ExportManager.tsx
 import React from 'react';
-import { saveAs } from 'file-saver';
-import { Parser } from 'json2csv';
+import { downloadCSV } from '../utils/exportCleanCSV';
 
 interface ExportManagerProps {
   clients: Record<string, string>[];
@@ -9,64 +7,58 @@ interface ExportManagerProps {
   tasks: Record<string, string>[];
   rules: {
     rules: any[];
-    priorities: {
-      priorityLevelWeight: number;
-      fairnessWeight: number;
-      fulfillmentWeight: number;
-    };
+    priorities: any;
   };
 }
 
-const ExportManager: React.FC<ExportManagerProps> = ({
-  clients,
-  workers,
-  tasks,
-  rules,
-}) => {
-  // 📦 Generic CSV export
-  const exportCSV = (data: Record<string, string>[], fileName: string) => {
-    if (!data || data.length === 0) {
-      alert(`⛔ Cannot export ${fileName} — no data found.`);
-      return;
-    }
-
-    try {
-      const fields = Object.keys(data[0]);
-      const parser = new Parser({ fields });
-      const csv = parser.parse(data);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-      saveAs(blob, fileName);
-    } catch (err) {
-      console.error(`❌ Failed to export ${fileName}:`, err);
-    }
-  };
-
-  // 📦 Generic JSON export
-  const exportJSON = (data: any, fileName: string) => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: 'application/json;charset=utf-8',
-    });
-    saveAs(blob, fileName);
-  };
-
-  // 📤 Export All
-  const handleExportAll = () => {
-    exportCSV(clients, 'clients_clean.csv');
-    exportCSV(workers, 'workers_clean.csv');
-    exportCSV(tasks, 'tasks_clean.csv');
-    exportJSON(rules, 'rules.json');
+const ExportManager = ({ clients, workers, tasks, rules }: ExportManagerProps) => {
+  const handleExportSession = () => {
+    const session = JSON.stringify({ clients, workers, tasks, ...rules }, null, 2);
+    const blob = new Blob([session], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'data-alchemist-session.json';
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="mt-6 text-center">
-      <button
-        onClick={handleExportAll}
-        className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow transition-all"
-      >
-        📤 Export Clean CSV + rules.json
-      </button>
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold mb-2">📁 Export Options</h2>
+
+      <div className="flex flex-wrap gap-4">
+        <button
+          onClick={handleExportSession}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          💾 Export Full Session
+        </button>
+
+        <button
+          onClick={() => downloadCSV('clients', clients)}
+          className="text-blue-300 underline hover:text-blue-500 transition"
+        >
+          📄 Export Clean Clients
+        </button>
+
+        <button
+          onClick={() => downloadCSV('workers', workers)}
+          className="text-blue-300 underline hover:text-blue-500 transition"
+        >
+          📄 Export Clean Workers
+        </button>
+
+        <button
+          onClick={() => downloadCSV('tasks', tasks)}
+          className="text-blue-300 underline hover:text-blue-500 transition"
+        >
+          📄 Export Clean Tasks
+        </button>
+      </div>
     </div>
   );
 };
 
 export default ExportManager;
+
