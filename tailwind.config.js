@@ -4,9 +4,14 @@ module.exports = {
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./component/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class', // ✅ Use 'class' strategy for manual toggle
+  darkMode: 'class', // or 'media' if you want system preference
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+      },
+    },
   },
   plugins: [],
 }
