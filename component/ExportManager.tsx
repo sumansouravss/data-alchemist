@@ -17,24 +17,31 @@ interface ExportManagerProps {
   };
 }
 
-const ExportManager: React.FC<ExportManagerProps> = ({ clients, workers, tasks, rules }) => {
-  const exportCSV = (data: any[], fileName: string) => {
+const ExportManager: React.FC<ExportManagerProps> = ({
+  clients,
+  workers,
+  tasks,
+  rules,
+}) => {
+  // 📦 Generic CSV export
+  const exportCSV = (data: Record<string, string>[], fileName: string) => {
     if (!data || data.length === 0) {
       alert(`⛔ Cannot export ${fileName} — no data found.`);
       return;
     }
 
     try {
-      const fields = Object.keys(data[0]); // 💡 Dynamically get columns
+      const fields = Object.keys(data[0]);
       const parser = new Parser({ fields });
       const csv = parser.parse(data);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
       saveAs(blob, fileName);
     } catch (err) {
-      console.error(`❌ CSV export failed for ${fileName}:`, err);
+      console.error(`❌ Failed to export ${fileName}:`, err);
     }
   };
 
+  // 📦 Generic JSON export
   const exportJSON = (data: any, fileName: string) => {
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: 'application/json;charset=utf-8',
@@ -42,6 +49,7 @@ const ExportManager: React.FC<ExportManagerProps> = ({ clients, workers, tasks, 
     saveAs(blob, fileName);
   };
 
+  // 📤 Export All
   const handleExportAll = () => {
     exportCSV(clients, 'clients_clean.csv');
     exportCSV(workers, 'workers_clean.csv');
@@ -53,7 +61,7 @@ const ExportManager: React.FC<ExportManagerProps> = ({ clients, workers, tasks, 
     <div className="mt-6 text-center">
       <button
         onClick={handleExportAll}
-        className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow"
+        className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow transition-all"
       >
         📤 Export Clean CSV + rules.json
       </button>

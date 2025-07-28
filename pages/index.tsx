@@ -6,10 +6,9 @@ import TaskSearchBar from '../component/TaskSearchBar';
 import PriorityPanel from '../component/PriorityPanel';
 import ExportManager from '../component/ExportManager';
 import RuleBuilder from '../component/RuleBuilder';
-import NLRuleInput from '../component/MLRuleInput';
+import NLRuleGenerator from '../component/NLRuleGenerator';
 import DarkModeToggle from '../component/DarkModeToggle';
 import NLTaskSearchBar from '../component/NLTaskSearchBar';
-import NLRuleGenerator from '../component/NLRuleGenerator';
 
 const isValidTaskId = (taskIds: string[], id: string) => taskIds.includes(id);
 
@@ -50,7 +49,6 @@ export default function Home() {
     setRules((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ✅ Load from localStorage on mount
   useEffect(() => {
     const savedSession = localStorage.getItem('data-alchemist-session');
     if (savedSession) {
@@ -67,7 +65,6 @@ export default function Home() {
     }
   }, []);
 
-  // ✅ Save to localStorage on any change
   useEffect(() => {
     localStorage.setItem(
       'data-alchemist-session',
@@ -82,13 +79,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-500 ease-in-out">
-      <div className="p-6 max-w-7xl mx-auto">
-
-        {/* ✅ Control Panel */}
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-6 space-x-4">
-
+      <div className="relative p-6 max-w-7xl mx-auto">
+        <div className="absolute top-4 left-4 z-50">
           <DarkModeToggle />
+        </div>
 
+        <div className="flex flex-wrap items-center justify-end mb-6 space-x-4">
           <button
             onClick={() => {
               if (confirm("Are you sure you want to reset the session?")) {
@@ -155,10 +151,12 @@ export default function Home() {
 
         <h1 className="text-3xl font-bold mb-6 text-center">🧙‍♂️ Data Alchemist</h1>
 
-        <FileUploader onDataParsed={handleDataParsed} />
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 transition-all duration-300">
+          <FileUploader onDataParsed={handleDataParsed} />
+        </div>
 
         {errors.length > 0 && (
-          <div className="bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-100 p-4 rounded mt-6">
+          <div className="bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-100 p-4 rounded mt-6 shadow-md transition-all duration-300">
             <h2 className="font-semibold mb-2">⚠️ Validation Errors</h2>
             <ul className="list-disc list-inside text-sm max-h-60 overflow-auto">
               {errors.map((err, i) => (
@@ -171,15 +169,19 @@ export default function Home() {
         )}
 
         {clients.length > 0 && (
-          <EditableTable data={clients} setData={setClients} title="Clients" />
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 transition-all duration-300">
+            <EditableTable data={clients} setData={setClients} title="Clients" />
+          </div>
         )}
 
         {workers.length > 0 && (
-          <EditableTable data={workers} setData={setWorkers} title="Workers" />
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 transition-all duration-300">
+            <EditableTable data={workers} setData={setWorkers} title="Workers" />
+          </div>
         )}
 
         {tasks.length > 0 && (
-          <>
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 transition-all duration-300">
             <TaskSearchBar originalData={tasks} onFiltered={setFilteredTasks} />
             <NLTaskSearchBar originalData={tasks} onFiltered={setFilteredTasks} />
             <EditableTable
@@ -188,16 +190,17 @@ export default function Home() {
               title="Tasks"
             />
             <RuleBuilder onAddRule={handleAddRule} taskIds={taskIds} />
-          </>
+          </div>
         )}
 
         <div className="mt-10 space-y-4">
-          <NLRuleInput onAddRule={handleAddRule} />
-          <NLRuleGenerator onAddRule={handleAddRule} taskIds={taskIds} />
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 transition-all duration-300">
+            <NLRuleGenerator onAddRule={handleAddRule} taskIds={taskIds} />
+          </div>
         </div>
 
         {rules.length > 0 && (
-          <div className="mt-6">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 transition-all duration-300">
             <h2 className="text-xl font-semibold mb-2">📋 Defined Rules</h2>
             <ul className="list-disc list-inside text-sm">
               {rules.map((rule, i) => (
@@ -217,14 +220,18 @@ export default function Home() {
           </div>
         )}
 
-        <PriorityPanel priorities={priorities} setPriorities={setPriorities} />
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 transition-all duration-300">
+          <PriorityPanel priorities={priorities} setPriorities={setPriorities} />
+        </div>
 
-        <ExportManager
-          clients={clients}
-          workers={workers}
-          tasks={tasks}
-          rules={{ rules, priorities }}
-        />
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 transition-all duration-300">
+          <ExportManager
+            clients={clients}
+            workers={workers}
+            tasks={tasks}
+            rules={{ rules, priorities }}
+          />
+        </div>
 
         <pre className="bg-gray-100 dark:bg-gray-800 text-sm p-4 mt-6 rounded overflow-auto max-h-80">
           {JSON.stringify({ clients, workers, tasks, rules, priorities }, null, 2)}
