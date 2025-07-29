@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
+export interface CoRunRule {
+  type: 'coRun';
+  tasks: [string, string];
+}
+
 interface AISuggestionsPanelProps {
-  clients: Record<string, string>[];
-  workers: Record<string, string>[];
+  clients: Record<string, string>[]; // If unused, comment out
+  workers: Record<string, string>[]; // If unused, comment out
   tasks: Record<string, string>[];
-  onAddRule: (rule: any) => void;
+  onAddRule: (rule: CoRunRule) => void;
 }
 
 const AISuggestionsPanel: React.FC<AISuggestionsPanelProps> = ({
@@ -13,7 +18,7 @@ const AISuggestionsPanel: React.FC<AISuggestionsPanelProps> = ({
   tasks,
   onAddRule,
 }) => {
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<CoRunRule[]>([]);
 
   useEffect(() => {
     const phaseMap: Record<number, string[]> = {};
@@ -30,7 +35,7 @@ const AISuggestionsPanel: React.FC<AISuggestionsPanelProps> = ({
       } catch {}
     });
 
-    const newSuggestions: any[] = [];
+    const newSuggestions: CoRunRule[] = [];
 
     Object.values(phaseMap).forEach((taskList) => {
       if (taskList.length >= 2) {
@@ -58,7 +63,9 @@ const AISuggestionsPanel: React.FC<AISuggestionsPanelProps> = ({
       <h2 className="text-xl font-semibold mb-2">🧠 AI Rule Suggestions</h2>
 
       {suggestions.length === 0 ? (
-        <p className="text-sm text-slate-300">No suggestions available. Upload task data with valid PreferredPhases.</p>
+        <p className="text-sm text-slate-300">
+          No suggestions available. Upload task data with valid PreferredPhases.
+        </p>
       ) : (
         <ul className="list-disc list-inside text-sm text-slate-100 space-y-2">
           {suggestions.map((rule, i) => (

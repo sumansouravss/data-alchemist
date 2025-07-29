@@ -7,7 +7,7 @@ type EntityType = "clients" | "workers" | "tasks";
 
 interface ParsedData {
   entity: EntityType;
-  data: Record<string, string>[];
+  data: Record<string, string>[]; // Key point: explicitly typed
 }
 
 interface FileUploaderProps {
@@ -47,7 +47,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onDataParsed }) => {
           const wb = XLSX.read(bstr, { type: "binary" });
           const wsname = wb.SheetNames[0];
           const ws = wb.Sheets[wsname];
-          const data = XLSX.utils.sheet_to_json(ws);
+          const data = XLSX.utils.sheet_to_json(ws) as Record<string, string>[]; // ✅ Fix here
           onDataParsed({ entity, data });
         } catch (err) {
           setError("❌ Error reading XLSX file.");
@@ -56,7 +56,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onDataParsed }) => {
       };
       reader.readAsBinaryString(file);
     } else if (file.type === "text/csv" || fileName.endsWith(".csv")) {
-      Papa.parse(file, {
+      Papa.parse<Record<string, string>>(file, {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {

@@ -1,14 +1,14 @@
+// component/ExportManager.tsx
+
 import React from 'react';
 import { downloadCSV } from '../utils/exportCleanCSV';
+import { RuleSet } from './types'; // 👈 Import from centralized types
 
 interface ExportManagerProps {
   clients: Record<string, string>[];
   workers: Record<string, string>[];
   tasks: Record<string, string>[];
-  rules: {
-    rules: any[];
-    priorities: any;
-  };
+  rules: RuleSet;
 }
 
 const ExportManager = ({ clients, workers, tasks, rules }: ExportManagerProps) => {
@@ -61,4 +61,3 @@ const ExportManager = ({ clients, workers, tasks, rules }: ExportManagerProps) =
 };
 
 export default ExportManager;
-

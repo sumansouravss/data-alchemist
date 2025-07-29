@@ -2,7 +2,8 @@
 module.exports = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx}',
-    './component/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx}', // Include app directory (for Next.js 13+)
   ],
   darkMode: 'class',
   theme: {
@@ -13,5 +14,9 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Add plugins if needed:
+    // require('@tailwindcss/forms'),
+    // require('@tailwindcss/typography'),
+  ],
 };

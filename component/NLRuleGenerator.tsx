@@ -1,9 +1,8 @@
 import { useState } from 'react';
 
-interface Rule {
-  type: string;
-  [key: string]: any;
-}
+type Rule =
+  | { type: 'coRun'; tasks: [string, string] }
+  | { type: 'dependency'; before: string; after: string };
 
 interface NLRuleGeneratorProps {
   onAddRule: (rule: Rule) => void;
@@ -28,7 +27,11 @@ const NLRuleGenerator = ({ onAddRule, taskIds }: NLRuleGeneratorProps) => {
     for (const pattern of patterns) {
       const match = text.match(pattern);
       if (match) {
-        return { type: 'dependency', after: match[1].toUpperCase(), before: match[2].toUpperCase() };
+        return {
+          type: 'dependency',
+          before: match[2].toUpperCase(),
+          after: match[1].toUpperCase(),
+        };
       }
     }
 
@@ -38,12 +41,15 @@ const NLRuleGenerator = ({ onAddRule, taskIds }: NLRuleGeneratorProps) => {
   const handlePreview = () => {
     const rule = parseRule(input);
     if (!rule) {
-      alert('❌ Could not understand rule. Try: "Make T1 run after T2" or "T1 depends on T2".');
+      alert('❌ Could not understand rule. Try: "Make T1 run after T2".');
       setPreview(null);
       return;
     }
 
-    if (!taskIds.includes(rule.before) || !taskIds.includes(rule.after)) {
+    if (
+      rule.type === 'dependency' &&
+      (!taskIds.includes(rule.before) || !taskIds.includes(rule.after))
+    ) {
       alert(`❌ Task IDs not found. Ensure "${rule.after}" and "${rule.before}" are valid.`);
       setPreview(null);
       return;
@@ -62,6 +68,8 @@ const NLRuleGenerator = ({ onAddRule, taskIds }: NLRuleGeneratorProps) => {
   const readableRule = (rule: Rule) => {
     if (rule.type === 'dependency') {
       return `📐 Task ${rule.after} must run after ${rule.before}`;
+    } else if (rule.type === 'coRun') {
+      return `🔗 Tasks ${rule.tasks[0]} and ${rule.tasks[1]} must run together`;
     }
     return JSON.stringify(rule);
   };
