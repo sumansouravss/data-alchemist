@@ -6,15 +6,11 @@ export interface CoRunRule {
 }
 
 interface AISuggestionsPanelProps {
-  clients: Record<string, string>[]; // If unused, comment out
-  workers: Record<string, string>[]; // If unused, comment out
-  tasks: Record<string, string>[];
+  tasks: Record<string, string>[]; // Only 'tasks' is used
   onAddRule: (rule: CoRunRule) => void;
 }
 
 const AISuggestionsPanel: React.FC<AISuggestionsPanelProps> = ({
-  clients,
-  workers,
   tasks,
   onAddRule,
 }) => {
@@ -32,7 +28,9 @@ const AISuggestionsPanel: React.FC<AISuggestionsPanelProps> = ({
             phaseMap[p].push(task.TaskID);
           });
         }
-      } catch {}
+      } catch {
+        // Ignore JSON parsing errors silently
+      }
     });
 
     const newSuggestions: CoRunRule[] = [];

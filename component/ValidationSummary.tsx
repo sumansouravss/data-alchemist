@@ -1,5 +1,5 @@
 import React from 'react';
-import { ValidationError } from '../utils/validateData';
+import { ValidationError } from '../utils/types';
 import { summarizeErrors } from '../utils/validateData';
 
 interface Props {

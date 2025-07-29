@@ -1,8 +1,7 @@
-// component/ExportManager.tsx
-
+// ExportManager.tsx
 import React from 'react';
 import { downloadCSV } from '../utils/exportCleanCSV';
-import { RuleSet } from './types'; // 👈 Import from centralized types
+import { RuleSet } from '../utils/types';
 
 interface ExportManagerProps {
   clients: Record<string, string>[];
@@ -23,6 +22,18 @@ const ExportManager = ({ clients, workers, tasks, rules }: ExportManagerProps) =
     URL.revokeObjectURL(url);
   };
 
+  const handleExportRulesJSON = () => {
+    const rulesBlob = new Blob([JSON.stringify(rules, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(rulesBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'rules.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold mb-2">📁 Export Options</h2>
@@ -36,24 +47,31 @@ const ExportManager = ({ clients, workers, tasks, rules }: ExportManagerProps) =
         </button>
 
         <button
-          onClick={() => downloadCSV('clients', clients)}
-          className="text-blue-300 underline hover:text-blue-500 transition"
+          onClick={handleExportRulesJSON}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
         >
-          📄 Export Clean Clients
+          📜 Export Rules (rules.json)
+        </button>
+
+        <button
+          onClick={() => downloadCSV('clients', clients)}
+          className="text-blue-500 underline hover:text-blue-700 transition"
+        >
+          📄 Export Clean Clients (CSV)
         </button>
 
         <button
           onClick={() => downloadCSV('workers', workers)}
-          className="text-blue-300 underline hover:text-blue-500 transition"
+          className="text-blue-500 underline hover:text-blue-700 transition"
         >
-          📄 Export Clean Workers
+          📄 Export Clean Workers (CSV)
         </button>
 
         <button
           onClick={() => downloadCSV('tasks', tasks)}
-          className="text-blue-300 underline hover:text-blue-500 transition"
+          className="text-blue-500 underline hover:text-blue-700 transition"
         >
-          📄 Export Clean Tasks
+          📄 Export Clean Tasks (CSV)
         </button>
       </div>
     </div>
